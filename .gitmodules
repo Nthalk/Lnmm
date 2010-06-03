@@ -7,3 +7,6 @@
 [submodule "deps/underscore"]
 	path = deps/underscore
 	url = http://github.com/documentcloud/underscore.git
+[submodule "deps/nodeunit"]
+	path = deps/nodeunit
+	url = http://github.com/caolan/nodeunit.git

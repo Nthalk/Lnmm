@@ -1,24 +1,40 @@
-var Observable = require("./lib/Observable").Observable;
+var Observable = require("../lib/Observable").Observable;
 
-var o = new Observable();
-var fn = function(data){sys.log("test: " + data);};
-o.on("test",fn);
-o.fire("test",["1/2"]);
-o.fire("test",["2/2"]);
-o.un("test",fn);
-o.fire("test",["Should not fire"]);
-
-var fn1 = function(){
-  return "1/1";
+exports.Observable = function(test){
+  test.expect(7);
+  var o = new Observable();
+  
+  // Simple events
+   o.on("ev1",function(data1,data2){
+     test.ok(data1===1);
+     test.ok(data2===2);
+   });
+   o.fire("ev1",[1,2]);
+   
+   // More complicated
+   o.once("ev2",function(data){
+     test.ok(data==="only once!");
+   });
+   o.fire("ev2",["only once!"]);
+   o.fire("ev2",["only once!"]);
+   
+   // Function relaying
+   var i = 0;
+   var fn = function(){return "fn-" + (i++);};
+   fn = o.relay("fn-spy",fn);
+   o.on("fn-spy",function(data){
+     test.ok(data==="fn-0");
+   });
+   fn();
+   
+   // Group scheduling
+   o.when(["template","session","article"],function(template,session,article){
+     test.ok(template[0] === "template");
+     test.ok(session[0] === "session");
+     test.ok(article[0] === "article");
+     test.done();
+   });
+   setTimeout(o.relay("template",function(){return "template";}),20);
+   setTimeout(o.relay("session",function(){return "session";}),20);
+   setTimeout(o.relay("article",function(){return "article";}),20);
 };
-fn1 = o.relay("ev1",fn1);
-o.on("ev1",function(data){sys.log("relay: " + data);});
-fn1();
-
-o.when(["ev1","test"],function(ev1,test){
-  sys.log("test: " + test[0]);
-  sys.log("ev1: " + ev1[0]);
-});
-
-fn1();
-o.fire("test",["when - test"]);
