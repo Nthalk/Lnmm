@@ -7,3 +7,6 @@
 [submodule "deps/nodeunit"]
 	path = deps/nodeunit
 	url = http://github.com/caolan/nodeunit.git
+[submodule "deps/node-memcache"]
+	path = deps/node-memcache
+	url = http://github.com/vanillahsu/node-memcache.git

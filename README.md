@@ -18,13 +18,13 @@ Dependencies & Credits
 Currently, Lnmm is built ontop of node 0.1.97 with the following modules required:
 
 Sannis's libmysql client: http://github.com/Sannis/node-mysql-libmysqlclient
-Elbart's memcache client: http://github.com/elbart/node-memcache
+Vanillahsu's memcache client: http://github.com/vanillahsu/node-memcache
 Underscore.js from documentcloud: http://github.com/documentcloud/underscore
 Simple Javascript Inheritance from John Resig: http://ejohn.org/blog/simple-javascript-inheritance/
 
 Notes
 -----------------------------------
-Both Sannis's and Elbart's libraries support async calling, but their protocol
+Both Sannis's and Vanillahsu's libraries support async calling, but their protocol
 implementations do not multiplex, so using two queries at once on the async
 calls crash their clients.
 
