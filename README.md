@@ -17,10 +17,10 @@ Dependencies & Credits
 -----------------------------------
 Currently, Lnmm is built ontop of node 0.1.97 with the following modules required:
 
-Sannis's libmysql client: http://github.com/Sannis/node-mysql-libmysqlclient
-Vanillahsu's memcache client: http://github.com/vanillahsu/node-memcache
-Underscore.js from documentcloud: http://github.com/documentcloud/underscore
-Simple Javascript Inheritance from John Resig: http://ejohn.org/blog/simple-javascript-inheritance/
+  Sannis's libmysql client: http://github.com/Sannis/node-mysql-libmysqlclient
+  Vanillahsu's memcache client: http://github.com/vanillahsu/node-memcache
+  Underscore.js from documentcloud: http://github.com/documentcloud/underscore
+  Simple Javascript Inheritance from John Resig: http://ejohn.org/blog/simple-javascript-inheritance/
 
 Notes
 -----------------------------------
