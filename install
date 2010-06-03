@@ -1,0 +1,27 @@
+#!/usr/local/bin/node
+
+var sys   = require('sys');
+var spawn = require('child_process').spawn;
+
+process.chdir("./deps/node-mysql");
+var mysql =  spawn('/usr/local/bin/node-waf',['configure','build']);
+mysql.stderr.addListener('data',function(data){
+  process.stdout.write(data);
+});
+mysql.stdout.addListener('data',function(data){
+  process.stdout.write(data);
+});
+
+mysql.addListener('exit',function(){
+  process.chdir("../node-memcache");
+  var memcache_patch = spawn('git',['apply','../patches/node-memcache.patch']);
+  memcache_patch.addListener('exit',function(){
+    var memcache =  spawn('/usr/local/bin/node-waf',['configure','build']);
+    memcache.stderr.addListener('data',function(data){
+      process.stdout.write(data);
+    });
+    memcache.stdout.addListener('data',function(data){
+      process.stdout.write(data);
+    });
+  });
+});

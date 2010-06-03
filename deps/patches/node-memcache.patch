@@ -1,0 +1,466 @@
+diff --git a/lib/memcache.js b/lib/memcache.js
+index 647f44a..67dd533 100644
+--- a/lib/memcache.js
++++ b/lib/memcache.js
+@@ -1,245 +1,130 @@
+-var impl = require('memcache-impl');
+-var sys = require('sys');
+-
+-var Connection = exports.Connection = function() {
+-  var self = this;
+-//  this.queue = [];
+-  this.conn = new impl.Connection();
+-};
+-
+-exports.MODULA = impl.MEMCACHED_DISTRIBUTION_MODULA;
+-exports.CONSISTENT = impl.MEMCACHED_DISTRIBUTION_CONSISTENT;
+-exports.CONSISTENT_KATAMA = impl.MEMCACHED_DISTRIBUTION_CONSISTENT_KETAMA;
+-exports.RANDOM = impl.MEMCACHED_DISTRIBUTION_RANDOM;
+-exports.CONSISTENT_KATAMA_SPY = impl.MEMCACHED_DISTRIBUTION_CONSISTENT_KETAMA_SPY;
+-exports.CONSISTENT_MAX = impl.MEMCACHED_DISTRIBUTION_CONSISTENT_MAX;
+-
+-/*
+-Connection.prototype.dispatch = function() {
+-  if (!this.queue) return;
+-
+-  if (!this.currentQuery && this.queue.length > 0) {
+-    this.currentQuery = this.queue.shift();
+-    switch (this.currentQuery.type) {
+-      case impl.MEMC_GET:
+-        this.conn.get(this.currentQuery.key);
+-        break;
+-      case impl.MEMC_SET:
+-        this.conn.set(this.currentQuery.type, this.currentQuery.key, this.currentQuery.value, this.currentQuery.expiration);
+-        break;
+-      case impl.MEMC_INCR:
+-        this._incr(this.currentQuery.key, this.currentQuery.offset);
+-        break;
+-      case impl.MEMC_DECR:
+-        this._decr(this.currentQuery.key, this.currentQuery.offset);
+-        break;
+-      case impl.MEMC_ADD:
+-        this._add(this.currentQuery.key, this.currentQuery.value);
+-        break;
+-      case impl.MEMC_REPLACE:
+-        this._replace(this.currentQuery.key, this.currentQuery.value);
+-        break;
+-      case impl.MEMC_PREPEND:
+-	this._prepend(this.currentQuery.key, this.currentQuery.value);
+-	break;
+-      case impl.MEMC_APPEND:
+-        this._append(this.currentQuery.key, this.currentQuery.value);
+-        break;
+-      case impl.MEMC_CAS:
+-        this._cas(this.currentQuery.key, this.currentQuery.value, this.currentQuery.cas_arg);
+-        break;
+-      case impl.MEMC_REMOVE:
+-        this._remove(this.currentQueue.key, this.currentQuery.expiration);
+-        break;
+-      case impl.MEMC_FLUSH:
+-        this._flush(this.currentQuery.expiration);
+-        break;
+-      default:
+-        sys.puts('error');
++var Memcache = require('memcache-impl');
++
++/**
++ * Default Variables
++ */
++var default_host = "localhost";
++var default_port = 11211;
++var default_callback = function(){};
++var default_expiration = 0;
++
++/**
++ * The main export
++ */
++exports.Memcache = function(options){
++  /**
++   * Constructor
++   */
++    this._options = options ? options : {};
++    this._conn = new Memcache.Connection();
++    this._queue = [];
++  };
++  
++exports.Memcache.prototype = {
++  /**
++   * Member variables
++   */
++  _options: null,
++  _conn : null,
++  _queue: null,
++  
++
++  
++  connect: function(callback){
++    this.addServer(
++      this._options.host ? this._options.host : default_host,
++      this._options.port ? this._options.port : default_port 
++    );
++    if(callback){
++      setTimeout(callback,1);
+     }
+-  }
+-};
+-
+-Connection.prototype.get = function(key, cb) {
+-  if (!this.queries) this.queries = [];
+-  cb.type = impl.MEMC_GET;
+-  cb.key = key;
+-  this.queries.push(cb);
+-  this.maybeDispatch();
+-};
+-
+-Connection.prototype.set = function(key, value, expiration, cb) {
+-  if (!this.queries) this.queries = [];
+-  cb.type = impl.MEMC_SET;
+-  cb.key = key;
+-  cb.value = value;
+-  cb.expiration = expiration;
+-  this.queries.push(cb);
+-  this.maybeDispatch();
+-};
+-
+-Connection.prototype.incr = function(key, offset, cb) {
+-  if (!this.queries) this.queries = [];
+-  cb.type = impl.MEMC_INCR;
+-  cb.key = key;
+-  cb.offset = offset;
+-  this.queries.push(cb);
+-  this.maybeDispatch();
+-}
+-
+-Connection.prototype.decr = function(key, offset, cb) {
+-  if (!this.queries) this.queries = [];
+-  cb.type = impl.MEMC_DECR;
+-  cb.key = key;
+-  cb.offset = offset;
+-  this.queries.push(cb);
+-  this.maybeDispatch();
+-}
+-
+-Connection.prototype.add= function(key, value, cb) {
+-  if (!this.queries) this.queries = [];
+-  cb.type = impl.MEMC_ADD;
+-  cb.key = key;
+-  cb.value = value;
+-  this.queries.push(cb);
+-  this.maybeDispatch();
+-}
+-
+-Connection.prototype.replace = function(key, value, cb) {
+-  if (!this.queries) this.queries = [];
+-  cb.type = impl.MEMC_REPLACE;
+-  cb.key = key;
+-  cb.value = value;
+-  this.queries.push(cb);
+-  this.maybeDispatch();
+-}
+-
+-Connection.prototype.prepend = function(key, value, cb) {
+-  if (!this.queries) this.queries = [];
+-  cb.type = impl.MEMC_PREPEND;
+-  cb.key = key;
+-  cb.value = value;
+-  this.queries.push(cb);
+-  this.maybeDispatch();
+-}
+-
+-Connection.prototype.append = function(key, value, cb) {
+-  if (!this.queries) this.queries = [];
+-  cb.type = impl.MEMC_APPEND;
+-  cb.key = key;
+-  cb.value = value;
+-  this.queries.push(cb);
+-  this.maybeDispatch();
+-}
+-
+-Connection.prototype.cas = function(key, value, cas_arg, cb) {
+-  if (!this.queries) this.queries = [];
+-  cb.type = impl.MEMC_CAS;
+-  cb.key = key;
+-  cb.value = value;
+-  cb.cas_arg = cas_arg;
+-  this.queries.push(cb);
+-  this.maybeDispatch();
+-}
+-
+-Connection.prototype.remove = function(key, expiration, cb) {
+-  if (!this.queries) this.queries = [];
+-  cb.type = impl.MEMC_REMOVE;
+-  cb.key = key;
+-  cb.expiration = expiration;
+-  this.queries.push(cb);
+-  this.maybeDispatch();
+-}
+-
+-Connection.prototype.flush = function(expiration, cb) {
+-  if (!this.queries) this.queries = [];
+-  cb.type = impl.MEMC_FLUSH;
+-  cb.expiration = expiration;
+-  this.queries.push(cb);
+-  this.maybeDispatch();
+-}
+-
+-*/
+-
+-Connection.prototype.addServer = function() {
+-  this.conn.addServer.apply(this.conn, arguments);
+-}
+-
+-Connection.prototype.get = function() {
+-  if (arguments.length == 2)
+-    this.conn.get.apply(this.conn, arguments);
+-  else
+-    this.conn.getSync(arguments[0]);
+-}
+-
+-Connection.prototype.set = function(key, value, expiration, cb) {
+-  this.conn.set(impl.MEMC_SET, key, value, expiration, cb);
+-}
+-
+-Connection.prototype.incr = function(key, value, cb) {
+-  this.conn.incr(impl.MEMC_INCR, key, value, cb);
+-}
+-
+-Connection.prototype.decr = function(key, value, cb) {
+-  this.conn.incr(impl.MEMC_DECR, key, value, cb);
+-}
+-
+-Connection.prototype.add = function(key, value, expiration, cb) {
+-  this.conn.set(impl.MEMC_ADD, key, value, expiration, cb);
+-}
+-
+-Connection.prototype.replace = function(key, value, expiration, cb) {
+-  this.conn.set(impl.MEMC_REPLACE, key, value, expiration, cb);
+-}
+-
+-Connection.prototype.append = function(key, value, expiration, cb) {
+-  this.conn.set(impl.MEMC_APPEND, key, value, expiration, cb);
+-}
+-
+-Connection.prototype.prepend = function(key, value, expiration, cb) {
+-  this.conn.set(impl.MEMC_PREPEND, key, value, expiration, cb);
+-}
+-
+-Connection.prototype.cas = function() {
+-  this.conn.cas.apply(this.conn, arguments);
+-}
+-
+-Connection.prototype.remove = function() {
+-  this.conn.remove.apply(this.conn, arguments);
+-}
+-
+-Connection.prototype.flush = function() {
+-  this.conn.flush.apply(this.conn, arguments);
+-}
+-
+-/*
+-exports.createConnection = function(conninfo) {
+-  var c = new Connection;
+-
+-  c.addListener('connect', function() {
+-    c.maybeDispatch();
+-  });
+-
+-  c.addListener('close', function() {
+-  });
+-
+-  c.addListener('ready', function() {
+-    c.maybeDispatch();
+-  });
+-
+-  c.addListener('result', function(result) {
+-    process.assert(c.currentQuery);
+-    var cb = c.currentQuery;
+-    c.currentQuery = null;
+-    if (result instanceof Error) {
+-      cb(result);
++  },
++  
++  addServer: function(server,port){
++    return this._conn.addServer(server,port);
++  },
++  
++  /**
++   * Enqueues an action (must be supported by _do) to start the running, or
++   * to be run later.
++   */
++  _doQueue: function(){
++    if (this._is_running) {
++      this._queue.push(arguments);
+     } else {
+-      cb(null, result);
++      this._is_running = true;
++      this._do(arguments);
+     }
+-  });
+-
+-  c.addServer(conninfo.server, conninfo.port);
+-
+-  return c;
++  },
++  
++  /**
++   * Wraps a callback in a queue puller that will set _is_running to false when
++   * done.
++   */
++  _doGetFn: function(callback){
++    var scope = this;
++    return function(){
++      var queued = scope._queue.shift();
++      if(queued){
++        scope._do(queued);
++      }else{
++        scope._is_running = false;
++      }
++      if(callback){
++        // Seriously, why is error returned first? Let's fix that.
++        callback.apply(scope,[arguments[1],arguments[0]]);
++      }
++    };
++  },
++  
++  /**
++   * We need to wrap the callback into a queue puller that starts the next action
++   * before running the callback. Additionally, if there is no callback, must
++   * supply a puller. This should only be called by _doQueue and _doGetFn
++   */
++  _do: function(args){
++    var fn = Array.prototype.shift.call(args);
++    var cbi = args.length-1; // The callback index
++    if(typeof args[cbi] === "function"){
++      args[cbi] = this._doGetFn(args[cbi]); // wrap that puppy in the queue puller
++    }else{
++      args[args.length] = this._doGetFn(false); // Create a new one (this may break if given bad arguments).
++    }
++    this._conn[fn].apply(this._conn,args);
++  },
++  
++  get: function(key,callback){
++    return this._doQueue("get",key+"",callback ? callback : default_callback);
++  },
++  
++  set: function(key,value,callback,expiration){
++    return this._doQueue(
++      "set",
++      Memcache.MEMC_SET,
++      key + "",
++      value + "",
++      typeof expiration !== "undefined" ? expiration : default_expiration ,
++      callback ? callback : default_callback
++    );
++  },
++  
++  incr: function(key,value,callback){
++    return this._doQueue(
++      "set",
++      Memcache.MEMC_INCR,
++      key + "",
++      value + "",
++      callback?callback:default_callback
++    );
++  },
++  decr: function(key,value,callback){
++    return this._doQueue(
++      "set",
++      Memcache.MEMC_DECR,
++      key + "",
++      value + "",
++      callback?callback:default_callback
++    );
++  }
+ };
+-*/
++
+diff --git a/src/binding.cc b/src/binding.cc
+index f67f4e1..bf37393 100644
+--- a/src/binding.cc
++++ b/src/binding.cc
+@@ -724,8 +724,6 @@ init(Handle<Object> target) {
+   NODE_DEFINE_CONSTANT(target, MEMCACHED_DISTRIBUTION_CONSISTENT);
+   NODE_DEFINE_CONSTANT(target, MEMCACHED_DISTRIBUTION_CONSISTENT_KETAMA);
+   NODE_DEFINE_CONSTANT(target, MEMCACHED_DISTRIBUTION_RANDOM);
+-  NODE_DEFINE_CONSTANT(target, MEMCACHED_DISTRIBUTION_CONSISTENT_KETAMA_SPY);
+-  NODE_DEFINE_CONSTANT(target, MEMCACHED_DISTRIBUTION_CONSISTENT_MAX);
+ 
+   Connection::Initialize(target);
+ }
+diff --git a/tests/test.js b/tests/test.js
+index baafa0d..e7f0764 100644
+--- a/tests/test.js
++++ b/tests/test.js
+@@ -1,32 +1,27 @@
+-var path = require('path');
++var Memcache = require("../lib/memcache").Memcache;
++var mem = new Memcache();
+ 
+-var testDir = path.dirname(__filename);
+-require.paths.unshift(path.join(testDir, '../build/default'));
+-require.paths.unshift(path.join(testDir, '../lib'));
+-
+-var sys = require('sys'),
+-    memcache = require('memcache'),
+-    assert = require('assert');
+-
+-var c = new memcache.Connection;
+-c.addServer('localhost', 7788);
+-c.get('test', function(err, result) {
+-  if (err) {
+-    sys.puts('error');
+-    c.set('test', '123', 10, function(err) {
+-      if (err) {
+-        sys.puts('error to set');
+-      }
+-      c.incr('test', 2, function(err, result) {
+-	if (err) {
+-          sys.puts('error to incr');
+-	} else {
+-	  sys.puts('result: ' + result);
+-	}
++exports.Memcache = function(test){
++  mem.connect();
++  test.expect(1);
++  mem.set("connect-test",1,function(value){});
++  mem.get("connect-test",function(value){
++    test.ok(value == 1);
++    test.done();
++  });
++};
++var sys = require("sys");
++exports.MemcacheStress = function(test){
++  var key = "memcache-test";
++  mem.set(key,1,function(){
++    mem.get(key,function(v){
++      mem.set(key,1+parseInt(v),function(){
++        mem.get(key,function(i){
++          test.ok(i==2);
++          test.done();
++        });
+       });
+     });
+-  } else {
+-    sys.puts(result);
+-  }
+-});
+-//sys.puts('sync: ' + c.get('get'));
++  });
++};
++
+diff --git a/wscript b/wscript
+index e861275..3788e14 100644
+--- a/wscript
++++ b/wscript
+@@ -10,11 +10,6 @@ def set_options(opt):
+ def configure(conf):
+   conf.check_tool("compiler_cxx")
+   conf.check_tool("node_addon")
+-  pkg_config = conf.find_program('pkg-config', var='PKG_CONFIG', mandatory=True)
+-  libmemcached_libdir = popen("%s libmemcached --libs-only-L" % pkg_config).readline().strip().replace("-L", "")
+-  libmemcached_includedir = popen("%s libmemcached --cflags-only-I" % pkg_config).readline().strip().replace("-I", "")
+-  conf.env.append_value("LIBPATH_MEMCACHED", libmemcached_libdir)
+-  conf.env.append_value('CPPPATH_MEMCACHED', libmemcached_includedir)
+   conf.env.append_value("LIB_MEMCACHED", "memcached")
+ 
+ def build(bld):
