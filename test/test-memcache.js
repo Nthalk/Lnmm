@@ -12,16 +12,15 @@ exports.Memcache = function(test){
 };
 var sys = require("sys");
 exports.MemcacheStress = function(test){
-  var i = 0;
-  for(i = 0; i < 100; i++){(function(i){
-    var key = "memcache-test-"+i;
-    mem.set(key,i,function(){
-      mem.get(key,function(v){
-        mem.set(key,v^2,function(q){
-          sys.log(sys.inspect(arguments));
+  var key = "memcache-test";
+  mem.set(key,1,function(){
+    mem.get(key,function(v){
+      mem.set(key,1+parseInt(v),function(){
+        mem.get(key,function(i){
+          test.ok(i==2);
+          test.done();
         });
       });
     });
-  })(i);}
-  test.expect(101);
+  });
 };
