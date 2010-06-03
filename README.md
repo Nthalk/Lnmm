@@ -34,9 +34,11 @@ Install the code
     git clone git@github.com:Nthalk/Lnmm.git
     cd Lnmm
     git submodule update --init
-    ./run-tests
     # This should patch the dependencies and build them
     ./install
+    ./run-tests --with-db-password="mypassword"
+    
+    
     
 
 Dependencies & Credits:

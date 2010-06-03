@@ -1,6 +1,27 @@
 var MySQL = require("../lib/Data/Base/MySQL/Server").Server;
-var mysql1 = new MySQL({pass:"m8db"});
-var mysql2 = new MySQL({pass:"m8db"});
+var options = {};
+process.argv.forEach(function (val, index, array) {
+  if(val.match("--mysql-pass=")){
+    options.pass = val.split('=',2)[1];
+  }
+  if(val.match("--mysql-user=")){
+    options.user = val.split('=',2)[1];
+  }
+});
+var mysql1;
+var mysql2;
+
+exports.MySQLConnect = function(test){
+  test.expect(1);
+  try{
+    mysql1 = new MySQL(options);
+    mysql2 = new MySQL(options);
+    test.ok(1);
+  }catch(e){
+    throw new Error("could not connect to mysql server, try running with --mysql-pass=YOUR_DB_PASSWORD or --mysql-user=YOUR_DB_USER");
+  }
+  test.done();
+};
 
 exports.MySQLStress = function(test){
   var total = 200;
