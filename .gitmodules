@@ -1,9 +1,6 @@
 [submodule "deps/node-mysql"]
 	path = deps/node-mysql
 	url = http://github.com/Sannis/node-mysql-libmysqlclient.git
-[submodule "deps/node-memcache"]
-	path = deps/node-memcache
-	url = http://github.com/elbart/node-memcache.git
 [submodule "deps/underscore"]
 	path = deps/underscore
 	url = http://github.com/documentcloud/underscore.git
