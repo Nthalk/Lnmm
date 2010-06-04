@@ -28,7 +28,7 @@ exports.ConnectAndNotFound = function(test){
 exports.Route = function(test){
   test.expect(1);
   s.route("/test",function(req,resp){
-    resp.writeHead(200);
+    resp.header(200);
     resp.end("test");
   });
   var client = http.createClient(port,"localhost");
