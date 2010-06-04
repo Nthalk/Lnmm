@@ -2,6 +2,7 @@
 
 var sys   = require('sys');
 var spawn = require('child_process').spawn;
+var fs = require("fs");
 
 process.chdir("./deps/node-mysql");
 var mysql =  spawn('/usr/local/bin/node-waf',['configure','build']);
@@ -22,6 +23,24 @@ mysql.addListener('exit',function(){
     });
     memcache.stdout.addListener('data',function(data){
       process.stdout.write(data);
+    });
+    memcache.addListener('exit',function(){
+      var i;
+      var lib_path;
+      for( i = 0; i < require.paths.length; i++){
+        if(require.paths[i].match('.node_libraries')){
+          lib_path = require.paths[i]; 
+        }
+      }
+      if(!lib_path){
+        throw new Error("I do not know where to link this");
+      }
+      
+      try{fs.unlinkSync(lib_path + "/lnmm")}catch(e){}
+      fs.symlinkSync(__dirname, lib_path + "/lnmm" );
+      sys.puts("Linking to " +  lib_path + "/lnmm");
+      sys.puts("Done!");
+      
     });
   });
 });
