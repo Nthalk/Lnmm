@@ -2,7 +2,7 @@ var Observable = require("../lib/Observable").Observable;
 
 
 exports.Observable = function(test){
-  test.expect(11);
+  test.expect(14);
   var o = new Observable();
   
   // Simple events
@@ -31,6 +31,23 @@ exports.Observable = function(test){
     test.ok(data==="fn-0");
   });
   fn();
+  
+  // Chaining
+  var sys = require("sys");
+  o.chain(
+    function(i){
+      test.ok(i==1);
+      return i+1;
+    },
+    function(i){
+      test.ok(i==2);
+      return i+1;
+    },
+    function(i){
+      test.ok(i==3);
+      return true;
+    }
+  )(1);
    
   // Group scheduling
   o.when(["article","session"],function(article,session){
