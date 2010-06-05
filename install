@@ -37,8 +37,18 @@ o.on('node_memcache_patch',function(){
   });
   memcache.addListener('exit',o.relay('node_memcache_complete'));
 });
-// When we're done with memcache
+
+// Install the crypt module
 o.on('node_memcache_complete',function(){
+  process.chdir("../node-crypto");
+  var crypt = spawn("/usr/local/bin/node-waf",['configure','build']);
+  crypt.stderr.addListener('data',function(d){process.stdout.write(d);});
+  crypt.stdout.addListener('data',function(d){process.stdout.write(d);});
+  crypt.addListener('exit',o.relay('node_crypt_complete'));
+});
+
+// When we're done with memcache
+o.on('node_crypt_complete',function(){
   var i;
   var lib_path;
   for( i = 0; i < require.paths.length; i++){

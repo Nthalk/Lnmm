@@ -10,3 +10,6 @@
 [submodule "deps/node-memcache"]
 	path = deps/node-memcache
 	url = http://github.com/vanillahsu/node-memcache.git
+[submodule "deps/node-crypto"]
+	path = deps/node-crypto
+	url = http://github.com/waveto/node-crypto.git
