@@ -25,14 +25,24 @@ exports.MySQLConnect = function(test){
 
 exports.MySQLStress = function(test){
   var total = 200;
-  var q;
+  test.expect(total+3);
+  
+  // Test asyncronicity
+  var k = 1;
+  mysql1.query("select ?,sleep(.5);",[k],function(t){
+    test.ok( t['1'] === 1 );
+    test.ok( k === 2 );
+  });
+  test.ok(k===1);
+  k++;
+  
+  var q,i;
   for(i = 0; i < total; i++){
     if(i%2===1){
       q = mysql1;
     }else{
       q = mysql2;
     }
-    test.expect(total);
     q.query("select ?;",[i],(function(t){return function(value){test.ok(t=value);};})(i));
   }
   var done = 0;
