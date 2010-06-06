@@ -12,7 +12,6 @@ var Observable = require("lnmm/lib/Observable").Observable;
 var Mime = require("lnmm/lib/Mime");
 var _ = require("lnmm/lib/Underscore")._;
 
-
 // Default options
 var mysql_opts = {database:"lnmm_blog"};
 var memcache_opts = {};
@@ -44,9 +43,30 @@ process.argv.forEach(function (val, index, array) {
 });
 
 // Core objects
-var mysql = new MySQL(mysql_opts);
-var mem = new Memcache(memcache_opts);
-mem.connect();
+var MySQLPool = function(options){
+    if(!options){
+        options = {
+            size: 150,
+            mysql: false
+        }
+    }
+    this._options = options;
+    this._pool = [];
+    this._index = 0;
+    var i;
+    for(i=0; i < this._options.size; i++){
+        this._pool.push(new MySQL(this._options.mysql));
+    }
+}
+MySQLPool.prototype = {
+    get: function(){
+        return this._pool[(this._index++%this._pool.length)];
+    }
+}
+
+var mysql_pool = new MySQLPool({size:100,mysql:mysql_opts});
+var mem = new Memcache(memcache_opts); mem.connect();
+require("lnmm/lib/Web/Request").Request.options.session_cache = mem;
 var ws = new WebServer(web_opts);
 
 // Set the template options to understand php templates
@@ -55,9 +75,6 @@ _.templateSettings = {
   end         : '?>',
   interpolate : /<\?php echo (.+?)\?>/g
 };
-
-// Configure our Request session cache.
-require("lnmm/lib/Web/Request").Request.options.session_cache = mem;
   
 var template;
 fs.readFile("./template.tpl",function(e,d){
@@ -66,6 +83,7 @@ fs.readFile("./template.tpl",function(e,d){
 
 // Webserver
 ws.route("/",function(req,resp){
+  var mysql = mysql_pool.get();
   var o = new Observable();
   
   // Retrieve the user from mysql
@@ -79,7 +97,6 @@ ws.route("/",function(req,resp){
   
   // Get the user's session.
   req.getSession('user-id',o.relay('session-user-id'));
-  // Grab the template
   
   // Grab the past 10 articles
   mysql.query("select * from articles order by time_created limit 10",null,null,o.relay('articles',function(r){
